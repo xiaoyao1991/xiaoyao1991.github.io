@@ -5,7 +5,7 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Xiaoyao Qian</title>
+  <title>Inserting Data to MySQL With Many-to-many Relationship - Xiaoyao Qian</title>
   <meta name="author" content="Xiaoyao Qian">
 
   
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://xiaoyao1991.github.io">
+  <link rel="canonical" href="http://xiaoyao1991.github.io/blog/2013/12/17/inserting-data-to-mysql-with-many-to-many-relationship">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Xiaoyao Qian" type="application/atom+xml">
@@ -63,15 +63,12 @@
 </nav>
   <div id="main">
     <div id="content">
-      <div class="blog-index">
+      <div>
+<article class="hentry" role="article">
   
-  
-  
-    <article>
-      
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2013/12/17/inserting-data-to-mysql-with-many-to-many-relationship/">Inserting Data to MySQL With Many-to-many Relationship</a></h1>
+      <h1 class="entry-title">Inserting Data to MySQL With Many-to-many Relationship</h1>
     
     
       <p class="meta">
@@ -82,15 +79,15 @@
 
 <time class='entry-date' datetime='2013-12-17T23:55:29-06:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>17</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>11:55 pm</span></time>
         
-           | <a href="/blog/2013/12/17/inserting-data-to-mysql-with-many-to-many-relationship/#disqus_thread"
-             data-disqus-identifier="http://xiaoyao1991.github.io/blog/2013/12/17/inserting-data-to-mysql-with-many-to-many-relationship/">Comments</a>
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://xiaoyao1991.github.io">Comments</a>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><p>One of my recent work involves parsing a large XML file(DBLP), and for each data record parsed, it needs to be inserted into the db. The data would be populating into tables, and they are correlated with many-to-many relationship.</p>
+<div class="entry-content"><p>One of my recent work involves parsing a large XML file(DBLP), and for each data record parsed, it needs to be inserted into the db. The data would be populating into tables, and they are correlated with many-to-many relationship.</p>
 
 <p>So, obviously there will be 3 tables:</p>
 
@@ -124,79 +121,62 @@
 
 <p>I&rsquo;m not sure if the second trial provides the best performance here, but it indeed improve the performance significantly as compared to the first trial.</p>
 </div>
-  
-  
 
 
-    </article>
-  
-  
-    <article>
+  <footer>
+    <p class="meta">
       
-  <header>
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Xiaoyao Qian</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2013-12-17T23:55:29-06:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>17</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>11:55 pm</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/cs/'>cs,</a>, <a class='category' href='/blog/categories/mysql/'>mysql</a>
+  
+</span>
+
+
+    </p>
     
-      <h1 class="entry-title"><a href="/blog/2013/12/14/pypy-and-numpy/">Pypy and Numpy</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2013-12-14T03:48:53-06:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>14</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>3:48 am</span></time>
-        
-           | <a href="/blog/2013/12/14/pypy-and-numpy/#disqus_thread"
-             data-disqus-identifier="http://xiaoyao1991.github.io/blog/2013/12/14/pypy-and-numpy/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Pypy and numpy have always been trying to get along well. On one hand, numpy is one of the best scientific libraries in the Python world. And on the other hand, pypy improves the efficiency of the execution significantly.</p>
-
-<p>I happened to start to switch from naive python interpreter to pypy due to some efficiency issue, and the performance boosting is tremendous. However, it took me some time to figure out how to make numpy work with pypy. Turns out the pypy dev team has just removed the numpypy(which is one of the numpy version in pypy) out of the code base. So we have to install the numpy as an individual module from the source provided by pypy.</p>
-
-<p>If you are using virtualenv, which is a good practice:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>pip install git+https://bitbucket.org/pypy/numpy.git</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Or directly download the fork and install:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>git clone https://bitbucket.org/pypy/numpy.git  </span></code></pre></td></tr></table></div></figure>
-
-
-<p></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>cd numpy  </span></code></pre></td></tr></table></div></figure>
-
-
-<p></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>pypy setup.py install  </span></code></pre></td></tr></table></div></figure>
-
-
-<p>Note that the official numpy module cannot work with pypy, so you have to use the fork by pypy dev team.<br/>
-You can always check <a href="http://buildbot.pypy.org/numpy-status/latest.html">http://buildbot.pypy.org/numpy-status/latest.html</a> to see which functions and models can be used within pypy. Great applause to pypy dev team. They are really making big progresses.</p>
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://xiaoyao1991.github.io/blog/2013/12/17/inserting-data-to-mysql-with-many-to-many-relationship/" data-via="" data-counturl="http://xiaoyao1991.github.io/blog/2013/12/17/inserting-data-to-mysql-with-many-to-many-relationship/" >Tweet</a>
+  
+  
+  <div class="g-plusone" data-size="medium"></div>
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
 </div>
-  
-  
 
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/12/14/pypy-and-numpy/" title="Previous Post: pypy and numpy">&laquo; pypy and numpy</a>
+      
+      
+    </p>
+  </footer>
+</article>
 
-    </article>
-  
-  <div class="pagination">
-    
-    <a href="/blog/archives">Blog Archives</a>
-    
-  </div>
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
 </div>
+  </section>
+
+</div>
+
 <aside class="sidebar">
   
     <section>
@@ -221,6 +201,7 @@ You can always check <a href="http://buildbot.pypy.org/numpy-status/latest.html"
   
 </aside>
 
+
     </div>
   </div>
   <footer role="contentinfo"><p>
@@ -235,7 +216,10 @@ You can always check <a href="http://buildbot.pypy.org/numpy-status/latest.html"
       var disqus_shortname = 'xiaoyao';
       
         
-        var disqus_script = 'count.js';
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://xiaoyao1991.github.io/blog/2013/12/17/inserting-data-to-mysql-with-many-to-many-relationship/';
+        var disqus_url = 'http://xiaoyao1991.github.io/blog/2013/12/17/inserting-data-to-mysql-with-many-to-many-relationship/';
+        var disqus_script = 'embed.js';
       
     (function () {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Xiaoyao's Blog]]></title>
+  <title><![CDATA[Xiaoyao Qian]]></title>
   <link href="http://xiaoyao1991.github.io/atom.xml" rel="self"/>
   <link href="http://xiaoyao1991.github.io/"/>
-  <updated>2014-10-19T16:38:45-05:00</updated>
+  <updated>2014-10-19T17:51:01-05:00</updated>
   <id>http://xiaoyao1991.github.io/</id>
   <author>
     <name><![CDATA[Xiaoyao Qian]]></name>
@@ -12,5 +12,84 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Inserting Data to MySQL With Many-to-many Relationship]]></title>
+    <link href="http://xiaoyao1991.github.io/blog/2013/12/17/inserting-data-to-mysql-with-many-to-many-relationship/"/>
+    <updated>2013-12-17T23:55:29-06:00</updated>
+    <id>http://xiaoyao1991.github.io/blog/2013/12/17/inserting-data-to-mysql-with-many-to-many-relationship</id>
+    <content type="html"><![CDATA[<p>One of my recent work involves parsing a large XML file(DBLP), and for each data record parsed, it needs to be inserted into the db. The data would be populating into tables, and they are correlated with many-to-many relationship.</p>
+
+<p>So, obviously there will be 3 tables:</p>
+
+<ul>
+<li>publications</li>
+<li>authors</li>
+<li>author_publication(with Foreign Key constraints on authors table and publications table)</li>
+</ul>
+
+
+<p>The first try:</p>
+
+<ol>
+<li>Insert publication to &lsquo;publications&rsquo;, take the last insert id</li>
+<li>Query an id from &lsquo;authors&rsquo;</li>
+<li>If step 2 returns an id(which means the author exist in the table), take that id; otherwise, insert the author to &lsquo;authors&rsquo;, take the last insert id</li>
+<li>Take both id&rsquo;s and insert into &lsquo;author_publication&rsquo; table.</li>
+</ol>
+
+
+<p>This trial runs very slow&hellip; Because for every author, we will be executing at most 2 queries to the db, and the queries can be expensive as the db size grows larger. So, instead of executing 2 queries, I utilized the fact that author must be UNIQUE inside of &lsquo;authors&rsquo; table. Here&rsquo;s the second trial:</p>
+
+<ol>
+<li>Insert publication to &lsquo;publications&rsquo;, take the last insert id</li>
+<li>Insert author to &lsquo;authors&rsquo; table and <code>ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id);</code>, take the last insert id</li>
+<li>Take both id&rsquo;s and insert into &lsquo;author_publication&rsquo; table.</li>
+</ol>
+
+
+<p>In this case, the second step would ensure that at most 1 query to the db. The details on <code>ON DUPLICATE KEY UPDATE</code> can be read from <a href="http://dev.mysql.com/doc/refman/5.0/en/insert-on-duplicate.html">The MySQL Manual Page</a></p>
+
+<p>I&rsquo;m not sure if the second trial provides the best performance here, but it indeed improve the performance significantly as compared to the first trial.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Pypy and Numpy]]></title>
+    <link href="http://xiaoyao1991.github.io/blog/2013/12/14/pypy-and-numpy/"/>
+    <updated>2013-12-14T03:48:53-06:00</updated>
+    <id>http://xiaoyao1991.github.io/blog/2013/12/14/pypy-and-numpy</id>
+    <content type="html"><![CDATA[<p>Pypy and numpy have always been trying to get along well. On one hand, numpy is one of the best scientific libraries in the Python world. And on the other hand, pypy improves the efficiency of the execution significantly.</p>
+
+<p>I happened to start to switch from naive python interpreter to pypy due to some efficiency issue, and the performance boosting is tremendous. However, it took me some time to figure out how to make numpy work with pypy. Turns out the pypy dev team has just removed the numpypy(which is one of the numpy version in pypy) out of the code base. So we have to install the numpy as an individual module from the source provided by pypy.</p>
+
+<p>If you are using virtualenv, which is a good practice:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>pip install git+https://bitbucket.org/pypy/numpy.git</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Or directly download the fork and install:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>git clone https://bitbucket.org/pypy/numpy.git  </span></code></pre></td></tr></table></div></figure>
+
+
+<p></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>cd numpy  </span></code></pre></td></tr></table></div></figure>
+
+
+<p></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>pypy setup.py install  </span></code></pre></td></tr></table></div></figure>
+
+
+<p>Note that the official numpy module cannot work with pypy, so you have to use the fork by pypy dev team.<br/>
+You can always check <a href="http://buildbot.pypy.org/numpy-status/latest.html">http://buildbot.pypy.org/numpy-status/latest.html</a> to see which functions and models can be used within pypy. Great applause to pypy dev team. They are really making big progresses.</p>
+]]></content>
+  </entry>
   
 </feed>
