@@ -3,7 +3,7 @@ layout: post
 title: "pypy and numpy"
 date: 2013-12-14 4:48:53 -0500
 comments: true
-categories: Python, CS
+categories: Python CS
 ---
 Pypy and numpy have always been trying to get along well. On one hand, numpy is one of the best scientific libraries in the Python world. And on the other hand, pypy improves the efficiency of the execution significantly.  
 
