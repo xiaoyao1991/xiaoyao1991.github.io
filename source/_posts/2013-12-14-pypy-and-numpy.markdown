@@ -8,6 +8,7 @@ categories: Python CS
 Pypy and numpy have always been trying to get along well. On one hand, numpy is one of the best scientific libraries in the Python world. And on the other hand, pypy improves the efficiency of the execution significantly.  
 
 I happened to start to switch from naive python interpreter to pypy due to some efficiency issue, and the performance boosting is tremendous. However, it took me some time to figure out how to make numpy work with pypy. Turns out the pypy dev team has just removed the numpypy(which is one of the numpy version in pypy) out of the code base. So we have to install the numpy as an individual module from the source provided by pypy.   
+<!-- more -->
 
 If you are using virtualenv, which is a good practice:  
 ```

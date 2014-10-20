@@ -12,6 +12,7 @@ So, obviously there will be 3 tables:
 - publications
 - authors
 - author_publication(with Foreign Key constraints on authors table and publications table)
+<!-- more -->
 
 The first try:  
 
