@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Python | Xiaoyao Qian]]></title>
   <link href="http://xiaoyao1991.github.io/blog/categories/python/atom.xml" rel="self"/>
   <link href="http://xiaoyao1991.github.io/"/>
-  <updated>2014-10-19T18:44:50-05:00</updated>
+  <updated>2014-10-19T22:50:51-05:00</updated>
   <id>http://xiaoyao1991.github.io/</id>
   <author>
     <name><![CDATA[Xiaoyao Qian]]></name>
@@ -21,6 +21,9 @@
     <content type="html"><![CDATA[<p>Pypy and numpy have always been trying to get along well. On one hand, numpy is one of the best scientific libraries in the Python world. And on the other hand, pypy improves the efficiency of the execution significantly.</p>
 
 <p>I happened to start to switch from naive python interpreter to pypy due to some efficiency issue, and the performance boosting is tremendous. However, it took me some time to figure out how to make numpy work with pypy. Turns out the pypy dev team has just removed the numpypy(which is one of the numpy version in pypy) out of the code base. So we have to install the numpy as an individual module from the source provided by pypy.</p>
+
+<!-- more -->
+
 
 <p>If you are using virtualenv, which is a good practice:<br/>
 <code>

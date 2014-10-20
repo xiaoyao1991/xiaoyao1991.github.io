@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Mysql | Xiaoyao Qian]]></title>
   <link href="http://xiaoyao1991.github.io/blog/categories/mysql/atom.xml" rel="self"/>
   <link href="http://xiaoyao1991.github.io/"/>
-  <updated>2014-10-19T18:44:50-05:00</updated>
+  <updated>2014-10-19T22:50:51-05:00</updated>
   <id>http://xiaoyao1991.github.io/</id>
   <author>
     <name><![CDATA[Xiaoyao Qian]]></name>
@@ -27,6 +27,9 @@
 <li>authors</li>
 <li>author_publication(with Foreign Key constraints on authors table and publications table)</li>
 </ul>
+
+
+<!-- more -->
 
 
 <p>The first try:</p>
