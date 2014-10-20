@@ -4,6 +4,8 @@ title: "Spring-AOP and AspectJ"
 date: 2014-10-19 22:50:20 -0500
 comments: true
 categories: CS Java Spring J2EE AspectJ annotation AOP
+keywords: "java, spring, aop, aspectj, annotation, j2ee"
+description: "Using Spring-AOP to make Java annotations work like Python decorator"
 ---
 ###Context:  
 

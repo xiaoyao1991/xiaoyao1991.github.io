@@ -7,7 +7,8 @@ title: Xiaoyao Qian
 subtitle: The nth Blog.
 author: Xiaoyao Qian
 simple_search: https://www.google.com/search
-description:
+description: "Xiaoyao's personal blog"
+keywords: "xiaoyao, java, javascript, python, blog"
 
 # Default date format is "ordinal" (resulting in "July 22nd 2007")
 # You can customize the format as defined in

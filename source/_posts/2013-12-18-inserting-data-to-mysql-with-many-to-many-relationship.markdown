@@ -4,6 +4,8 @@ title: "Inserting data to MySQL with many-to-many relationship"
 date: 2013-12-18 00:55:29 -0500
 comments: true
 categories: CS MySQL
+keywords: "mysql, m2m, many-to-many, insert"
+description: "Efficient way of inserting data to MySQL with many-to-many relation"
 ---
 One of my recent work involves parsing a large XML file(DBLP), and for each data record parsed, it needs to be inserted into the db. The data would be populating into tables, and they are correlated with many-to-many relationship.   
 
