@@ -1,0 +1,579 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Java | Xiaoyao Qian]]></title>
+  <link href="http://xiaoyao1991.github.io/blog/categories/java/atom.xml" rel="self"/>
+  <link href="http://xiaoyao1991.github.io/"/>
+  <updated>2014-10-19T23:05:14-05:00</updated>
+  <id>http://xiaoyao1991.github.io/</id>
+  <author>
+    <name><![CDATA[Xiaoyao Qian]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Spring-AOP and AspectJ]]></title>
+    <link href="http://xiaoyao1991.github.io/blog/2014/10/19/spring-aop-and-aspectj/"/>
+    <updated>2014-10-19T22:50:20-05:00</updated>
+    <id>http://xiaoyao1991.github.io/blog/2014/10/19/spring-aop-and-aspectj</id>
+    <content type="html"><![CDATA[<h3>Context:</h3>
+
+<ol>
+<li><a href="#annotationAndDecorator">@annotation &amp; @decorator</a></li>
+<li><a href="#usecase">Use Case</a></li>
+<li><a href="#spring-aop">Spring AOP &amp; AspectJ</a></li>
+<li><a href="#code">Code Sample</a>:
+
+<ul>
+<li><a href="#pom">Maven Dependencies</a></li>
+<li><a href="#aspects">Aspects</a></li>
+<li><a href="#annotations">Annotations</a></li>
+<li><a href="#config">Config</a></li>
+<li><a href="#service">Service</a></li>
+<li><a href="#app">Let&rsquo;s run it</a></li>
+</ul>
+</li>
+<li><a href="#pitfalls">Pitfalls</a></li>
+</ol>
+
+
+<!-- more -->
+
+
+<p><a name="annotationAndDecorator"></a></p>
+
+<h3>@annotation &amp; @decorator</h3>
+
+<p>I was recently looking into Java @annotation and have always been comparing it with Python @decorator. @annotations and @decorators share the same form, but function differently.</p>
+
+<p>Java @annotation is designed to be meta data marker. It marks certain elements like methods, classes, or variables without changing the actual work of the code. When defining an annotation in Java, a retention policy needs to be specified. The retention policy decides whether if the annotation will exist in the .class files after compilation and should it be accessible during runtime.</p>
+
+<p>There are 3 types of retention policies <a href="#r1">1</a>:</p>
+
+<ul>
+<li>CLASS (default): Annotations are to be recorded in the class file by the compiler but need not be retained by the VM at run time.</li>
+<li>SOURCE: Annotations are to be discarded by the compiler.</li>
+<li>RUNTIME: Annotations are to be recorded in the class file by the compiler and retained by the VM at run time, so they may be read reflectively.</li>
+</ul>
+
+
+<p>One typical example of annotation is @Override. Its retention policy is SOURCE which means it is only there for developers&#8217; reference, and will not exist in the compiled files. JUnit @Test annotation, on the other hand, has the RUNTIME retention policy and will exist after compiled. @Test leaves a mark on the test functions and so later JUnit can know which functions are tests and should it run.</p>
+
+<p>Python @decorator is an implementation of the <a href="http://en.wikipedia.org/wiki/Decorator_pattern">Decorator Pattern</a>. When a decorated method is called, a wrapper function elsewhere that defines the decorator will catch the called method, and so can apply some preprocess/postprocess logics to the decorated method. <strong>In a nutshell, a @decorator is a function that takes a target function as parameter, and then returns a wrapper function that call the target function and also do some extra works around.</strong> Python @decorators are very useful syntactic sugar and are very easy to use. An example decorator looks like this:</p>
+
+<p><figure class='code'><figcaption><span>decorator_example.py </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">h1</span><span class="o">&gt;</span><span class="n">Define</span> <span class="n">a</span> <span class="n">decorator</span> <span class="n">named</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">deprecated</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span><span class="o">&lt;/</span><span class="n">h1</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="k">def</span> <span class="nf">deprecated</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">():</span>
+</span><span class='line'>        <span class="k">print</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">This</span> <span class="n">method</span> <span class="ow">is</span> <span class="n">deprecated</span><span class="err">!</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span>
+</span><span class='line'>        <span class="n">func</span><span class="p">()</span>
+</span><span class='line'>        <span class="k">print</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">But</span> <span class="n">you</span> <span class="n">use</span> <span class="n">it</span> <span class="n">anyway</span> <span class="n">huh</span><span class="err">!</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">return</span> <span class="n">wrapper</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="nd">@deprecated</span>
+</span><span class='line'><span class="k">def</span> <span class="nf">some_deprecated_method</span><span class="p">():</span>
+</span><span class='line'>    <span class="k">print</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">I</span> <span class="n">am</span> <span class="n">a</span> <span class="n">deprecated</span> <span class="n">method</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">some_deprecated_method</span><span class="p">()</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">h1</span><span class="o">&gt;</span><span class="n">This</span> <span class="n">method</span> <span class="ow">is</span> <span class="n">deprecated</span><span class="err">!</span><span class="o">&lt;/</span><span class="n">h1</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">h1</span><span class="o">&gt;</span><span class="n">I</span> <span class="n">am</span> <span class="n">a</span> <span class="n">deprecated</span> <span class="n">method</span><span class="o">&lt;/</span><span class="n">h1</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">h1</span><span class="o">&gt;</span><span class="n">But</span> <span class="n">you</span> <span class="n">use</span> <span class="n">it</span> <span class="n">anyway</span> <span class="n">huh</span><span class="err">!</span><span class="o">&lt;/</span><span class="n">h1</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">h2</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure></h2>
+
+<p><a name="usecase"></a></p>
+
+<h3>Use Case</h3>
+
+<p>Decorator Pattern is useful in many cases. For example:</p>
+
+<ul>
+<li>Log the running time for certain functions.</li>
+<li>RESTful Web Services usually need some user role filtering(such as user login) on some API services.</li>
+<li>Common constrains on database queries.</li>
+</ul>
+
+
+<p>Most of the Python Web Framework implemented user login functions by decorators. So the developers only need to decorate the functions that require authentication with the provided decorator. This is very easy and keeps the code clear. I&rsquo;d like to use Java @annotation to do exactly the same thing, which lead us to Spring-AOP and AspectJ.</p>
+
+<hr />
+
+<p><a name="spring-aop"></a></p>
+
+<h3>Spring AOP &amp; AspectJ</h3>
+
+<p>Spring AOP(Aspect Oriented Programming) is a technique that enables adding executable blocks to the source code without explicitly changing it. For example, we don&rsquo;t want to add code blocks and conditions inside the API Web Service codes which pollute our code with multiple conditions check. Instead, we want some other classes to intercept these specific API calls, check the authentication and then decide whether to trigger the service behind the scenes. We want that interceptor to understand the annotations and intercept every call to those specific methods with the annotation. This case perfectly fits the original intent of AOP — to avoid re-implementation of some common behavior in multiple classes. In terms of AOP, our solution can be explained as creating an aspect that cross-cuts the code at certain join points and applies an around advice that implements the desired functionality. <a href="#r2">2</a></p>
+
+<p>Spring-AOP enables you to use @AspectJ annotation style to make aspects. Note that with proper configuration, Spring-AOP will include the @AspectJ aspects into its management scope, and so we can inject beans into aspects too.</p>
+
+<hr />
+
+<p><a name="code"></a></p>
+
+<h3>Show Me The Code</h3>
+
+<p>The following code samples use Spring annotation-based configurations instead of XML-based configs. There are many tutorials and resources online regarding implementing such functions in XML-based Spring, but I didn&rsquo;t find much resources on annotation-based Spring. So I&rsquo;m gonna do it with annotation-based configuration and have a quick walkthrough on the code. More details on Spring annotation-based configuration and Spring-AOP including some terminologies can be found at <a href="#r3">3</a>.</p>
+
+<p><a name="pom"></a></p>
+
+<h4>Maven Dependencies</h4>
+
+<p><figure class='code'><figcaption><span>pom.xml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;dependencies&gt;</span>    <span class="nt">&lt;br/&gt;</span>
+</span><span class='line'>    <span class="c">&lt;!-- Spring --&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;dependency&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;groupId&gt;</span>org.springframework<span class="nt">&lt;/groupId&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;artifactId&gt;</span>spring-context<span class="nt">&lt;/artifactId&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;version&gt;</span>4.1.1.RELEASE<span class="nt">&lt;/version&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;/dependency&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;dependency&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;groupId&gt;</span>org.springframework<span class="nt">&lt;/groupId&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;artifactId&gt;</span>spring-core<span class="nt">&lt;/artifactId&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;version&gt;</span>4.1.1.RELEASE<span class="nt">&lt;/version&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;/dependency&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;dependency&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;groupId&gt;</span>org.springframework<span class="nt">&lt;/groupId&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;artifactId&gt;</span>spring-aop<span class="nt">&lt;/artifactId&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;version&gt;</span>4.1.1.RELEASE<span class="nt">&lt;/version&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;/dependency&gt;&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nt">&lt;pre&gt;&lt;code&gt;</span><span class="ni">&amp;lt;</span>!-- AspectJ --<span class="ni">&amp;gt;</span>
+</span><span class='line'><span class="ni">&amp;lt;</span>dependency<span class="ni">&amp;gt;</span>
+</span><span class='line'>    <span class="ni">&amp;lt;</span>groupId<span class="ni">&amp;gt;</span>org.aspectj<span class="ni">&amp;lt;</span>/groupId<span class="ni">&amp;gt;</span>
+</span><span class='line'>    <span class="ni">&amp;lt;</span>artifactId<span class="ni">&amp;gt;</span>aspectjrt<span class="ni">&amp;lt;</span>/artifactId<span class="ni">&amp;gt;</span>
+</span><span class='line'>    <span class="ni">&amp;lt;</span>version<span class="ni">&amp;gt;</span>1.8.2<span class="ni">&amp;lt;</span>/version<span class="ni">&amp;gt;</span>
+</span><span class='line'><span class="ni">&amp;lt;</span>/dependency<span class="ni">&amp;gt;</span>
+</span><span class='line'><span class="ni">&amp;lt;</span>dependency<span class="ni">&amp;gt;</span>
+</span><span class='line'>    <span class="ni">&amp;lt;</span>groupId<span class="ni">&amp;gt;</span>org.aspectj<span class="ni">&amp;lt;</span>/groupId<span class="ni">&amp;gt;</span>
+</span><span class='line'>    <span class="ni">&amp;lt;</span>artifactId<span class="ni">&amp;gt;</span>aspectjweaver<span class="ni">&amp;lt;</span>/artifactId<span class="ni">&amp;gt;</span>
+</span><span class='line'>    <span class="ni">&amp;lt;</span>version<span class="ni">&amp;gt;</span>1.8.2<span class="ni">&amp;lt;</span>/version<span class="ni">&amp;gt;</span>
+</span><span class='line'><span class="ni">&amp;lt;</span>/dependency<span class="ni">&amp;gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="ni">&amp;lt;</span>!-- JavaConfig need this library --<span class="ni">&amp;gt;</span>
+</span><span class='line'><span class="ni">&amp;lt;</span>dependency<span class="ni">&amp;gt;</span>
+</span><span class='line'>    <span class="ni">&amp;lt;</span>groupId<span class="ni">&amp;gt;</span>cglib<span class="ni">&amp;lt;</span>/groupId<span class="ni">&amp;gt;</span>
+</span><span class='line'>    <span class="ni">&amp;lt;</span>artifactId<span class="ni">&amp;gt;</span>cglib<span class="ni">&amp;lt;</span>/artifactId<span class="ni">&amp;gt;</span>
+</span><span class='line'>    <span class="ni">&amp;lt;</span>version<span class="ni">&amp;gt;</span>2.2.2<span class="ni">&amp;lt;</span>/version<span class="ni">&amp;gt;</span>
+</span><span class='line'><span class="ni">&amp;lt;</span>/dependency<span class="ni">&amp;gt;</span>
+</span><span class='line'><span class="ni">&amp;lt;</span>dependency<span class="ni">&amp;gt;</span>
+</span><span class='line'>    <span class="ni">&amp;lt;</span>groupId<span class="ni">&amp;gt;</span>javax.inject<span class="ni">&amp;lt;</span>/groupId<span class="ni">&amp;gt;</span>
+</span><span class='line'>    <span class="ni">&amp;lt;</span>artifactId<span class="ni">&amp;gt;</span>javax.inject<span class="ni">&amp;lt;</span>/artifactId<span class="ni">&amp;gt;</span>
+</span><span class='line'>    <span class="ni">&amp;lt;</span>version<span class="ni">&amp;gt;</span>1<span class="ni">&amp;lt;</span>/version<span class="ni">&amp;gt;</span>
+</span><span class='line'><span class="ni">&amp;lt;</span>/dependency<span class="ni">&amp;gt;</span>
+</span><span class='line'><span class="nt">&lt;/code&gt;&lt;/pre&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nt">&lt;p&gt;&lt;/dependencies&gt;</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p><a name="aspects"></a></p>
+
+<h4>Aspects</h4>
+
+<p><figure class='code'><figcaption><span>TestAspect.java </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">package</span> <span class="n">com</span><span class="o">.</span><span class="na">xiaoyao</span><span class="o">.</span><span class="na">aspects</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">javax.inject.Inject</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">org.aspectj.lang.ProceedingJoinPoint</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">org.aspectj.lang.annotation.Around</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">org.aspectj.lang.annotation.Aspect</span><span class="o">;&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="nd">@Aspect</span>
+</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">TestAspect</span> <span class="o">{</span>
+</span><span class='line'>    <span class="nd">@Inject</span> <span class="kd">private</span> <span class="n">String</span> <span class="n">appId</span><span class="o">;&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="nd">@Around</span><span class="o">(</span><span class="s">&quot;execution(* *(..)) &amp;amp;&amp;amp; @annotation(com.xiaoyao.annotations.TestAnnotation)&quot;</span><span class="o">)</span>
+</span><span class='line'><span class="kd">public</span> <span class="n">Object</span> <span class="nf">authenticate</span><span class="o">(</span><span class="kd">final</span> <span class="n">ProceedingJoinPoint</span> <span class="n">pjp</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Throwable</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;[TestAspect] Intercepted&quot;</span><span class="o">);</span>
+</span><span class='line'>    <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;[TestAspect] appid: &quot;</span> <span class="o">+</span> <span class="n">appId</span><span class="o">);</span>
+</span><span class='line'>    <span class="k">return</span> <span class="n">pjp</span><span class="o">.</span><span class="na">proceed</span><span class="o">();</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;}</span>
+</span></code></pre></td></tr></table></div></figure>
+This is a simple aspect with a single around advice <code>around()</code> inside. The aspect is annotated with @Aspect and advice is annotated with @Around. Annotation @Around has one parameter, which — in this case — says that the advice should be applied to a method if:</p>
+
+<ul>
+<li>its visibility modifier is * (public, protected or private);</li>
+<li>its name is name * (any name);</li>
+<li>its arguments are .. (any arguments);</li>
+<li>it is annotated with <code>@TestAnnotation</code> which will be defined later;</li>
+</ul>
+
+
+<p>I also inject a bean <code>appId</code> into this aspect. I will discuss the proper configuration required in order to make such injection works.</p>
+
+<p>When a call to an annotated method is to be intercepted, method <code>around()</code> executes before executing the actual method. Method <code>around()</code> receives an instance of class <code>ProceedingJoinPoint</code> and returns an object. <code>ProceedingJoinPoint</code> can be seen as the original method, and the return value will be used as the result of the original method. In order to call the original method, the advice has to call <code>proceed()</code> of the join point object.</p>
+
+<p><figure class='code'><figcaption><span>AdditionalTestAspect.java </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">package</span> <span class="n">com</span><span class="o">.</span><span class="na">xiaoyao</span><span class="o">.</span><span class="na">aspects</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">javax.inject.Inject</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">org.aspectj.lang.ProceedingJoinPoint</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">org.aspectj.lang.annotation.Around</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">org.aspectj.lang.annotation.Aspect</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">com.xiaoyao.annotations.AdditionalTestAnnotation</span><span class="o">;&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="nd">@Aspect</span>
+</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">AdditionalTestAspect</span> <span class="o">{</span>
+</span><span class='line'>    <span class="nd">@Inject</span> <span class="kd">private</span> <span class="n">String</span> <span class="n">appId</span><span class="o">;&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="nd">@Around</span><span class="o">(</span><span class="s">&quot;execution(* *(..)) &amp;amp;&amp;amp; @annotation(additionalTestAnnotation)&quot;</span><span class="o">)</span>
+</span><span class='line'><span class="kd">public</span> <span class="n">Object</span> <span class="nf">anotherAuthenticate</span><span class="o">(</span><span class="kd">final</span> <span class="n">ProceedingJoinPoint</span> <span class="n">pjp</span><span class="o">,</span> <span class="kd">final</span> <span class="n">AdditionalTestAnnotation</span> <span class="n">additionalTestAnnotation</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Throwable</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;[AdditionalTestAspect] Intercepted&quot;</span><span class="o">);</span>
+</span><span class='line'>    <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;[AdditionalTestAspect] appid: &quot;</span> <span class="o">+</span> <span class="n">appId</span><span class="o">);</span>
+</span><span class='line'>    <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;[AdditionalTestAspect] annotation: &quot;</span> <span class="o">+</span> <span class="n">additionalTestAnnotation</span><span class="o">.</span><span class="na">value</span><span class="o">());</span>
+</span><span class='line'>    <span class="k">return</span> <span class="n">pjp</span><span class="o">.</span><span class="na">proceed</span><span class="o">();</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;}</span>
+</span></code></pre></td></tr></table></div></figure>
+This is another aspect with a single around advice. The only difference with the <code>TestAspect</code> is that this aspect will read the attribute from the annotation.</p>
+
+<p><a name="annotation"></a></p>
+
+<h4>Annotations</h4>
+
+<p><figure class='code'><figcaption><span>TestAnnotation.java </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">package</span> <span class="n">com</span><span class="o">.</span><span class="na">xiaoyao</span><span class="o">.</span><span class="na">annotations</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">java.lang.annotation.ElementType</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">java.lang.annotation.Retention</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">java.lang.annotation.RetentionPolicy</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">java.lang.annotation.Target</span><span class="o">;&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="nd">@Retention</span><span class="o">(</span><span class="n">RetentionPolicy</span><span class="o">.</span><span class="na">RUNTIME</span><span class="o">)</span>
+</span><span class='line'><span class="nd">@Target</span><span class="o">({</span> <span class="n">ElementType</span><span class="o">.</span><span class="na">METHOD</span><span class="o">,</span> <span class="n">ElementType</span><span class="o">.</span><span class="na">TYPE</span> <span class="o">})</span>
+</span><span class='line'><span class="kd">public</span> <span class="nd">@interface</span> <span class="n">TestAnnotation</span> <span class="o">{}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p><figure class='code'><figcaption><span>AdditionalTestAnnotation.java </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">package</span> <span class="n">com</span><span class="o">.</span><span class="na">xiaoyao</span><span class="o">.</span><span class="na">annotations</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">java.lang.annotation.ElementType</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">java.lang.annotation.Retention</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">java.lang.annotation.RetentionPolicy</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">java.lang.annotation.Target</span><span class="o">;&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="nd">@Retention</span><span class="o">(</span><span class="n">RetentionPolicy</span><span class="o">.</span><span class="na">RUNTIME</span><span class="o">)</span>
+</span><span class='line'><span class="nd">@Target</span><span class="o">({</span> <span class="n">ElementType</span><span class="o">.</span><span class="na">METHOD</span><span class="o">,</span> <span class="n">ElementType</span><span class="o">.</span><span class="na">TYPE</span> <span class="o">})</span>
+</span><span class='line'><span class="kd">public</span> <span class="nd">@interface</span> <span class="n">AdditionalTestAnnotation</span> <span class="o">{</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="nf">value</span><span class="o">();</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p><a name="config"></a></p>
+
+<h4>Config</h4>
+
+<p><figure class='code'><figcaption><span>AppConfig.java </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">package</span> <span class="n">com</span><span class="o">.</span><span class="na">xiaoyao</span><span class="o">.</span><span class="na">config</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">org.springframework.context.annotation.Bean</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">org.springframework.context.annotation.ComponentScan</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">org.springframework.context.annotation.Configuration</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">org.springframework.context.annotation.EnableAspectJAutoProxy</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">com.xiaoyao.aspects.AdditionalTestAspect</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">com.xiaoyao.aspects.TestAspect</span><span class="o">;&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="nd">@ComponentScan</span><span class="o">(</span><span class="n">basePackages</span> <span class="o">=</span> <span class="o">{&amp;</span><span class="n">ldquo</span><span class="o">;</span><span class="n">com</span><span class="o">.</span><span class="na">xiaoyao</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="o">;})</span>
+</span><span class='line'><span class="nd">@Configuration</span>
+</span><span class='line'><span class="nd">@EnableAspectJAutoProxy</span>
+</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">AppConfig</span> <span class="o">{&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="nd">@Bean</span>
+</span><span class='line'><span class="kd">public</span> <span class="n">String</span> <span class="nf">appId</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>    <span class="k">return</span> <span class="s">&quot;Xiaoyao&#39;s App&quot;</span><span class="o">;</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="nd">@Bean</span>
+</span><span class='line'><span class="kd">public</span> <span class="n">TestAspect</span> <span class="nf">testAspect</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>    <span class="k">return</span> <span class="k">new</span> <span class="nf">TestAspect</span><span class="o">();</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="nd">@Bean</span>
+</span><span class='line'><span class="kd">public</span> <span class="n">AdditionalTestAspect</span> <span class="nf">additionalTestAspect</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>    <span class="k">return</span> <span class="k">new</span> <span class="nf">AdditionalTestAspect</span><span class="o">();</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;}</span>
+</span></code></pre></td></tr></table></div></figure>
+This is a standard configuration POJO for annotation-based Spring. In order to use annotation-based configuration, we just need to annotate a config POJO with <code>@Configuration</code> and <code>ComponentScan</code>, and annotate each beans with <code>@Bean</code>.</p>
+
+<p><code>EnableAspectJAutoProxy</code> is required for Spring to auto discover @AspectJ aspects, and perform runtime weaving <a href="#r3">3</a>. <strong>In addition, the aspects also have to be declared as beans so that Spring will include them into its management scope</strong>. With this configuration, our aspects and annotations are ready to go.</p>
+
+<p><a name="service"></a></p>
+
+<h4>Service</h4>
+
+<p><figure class='code'><figcaption><span>TestService.java </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">package</span> <span class="n">com</span><span class="o">.</span><span class="na">xiaoyao</span><span class="o">.</span><span class="na">services</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">org.springframework.stereotype.Service</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">com.xiaoyao.annotations.AdditionalTestAnnotation</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">com.xiaoyao.annotations.TestAnnotation</span><span class="o">;&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="nd">@Service</span>
+</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">TestService</span> <span class="o">{</span>
+</span><span class='line'>    <span class="nd">@TestAnnotation</span><span class="o">()</span>
+</span><span class='line'>    <span class="nd">@AdditionalTestAnnotation</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">serve</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(&amp;</span><span class="n">ldquo</span><span class="o">;</span><span class="n">This</span> <span class="n">is</span> <span class="n">a</span> <span class="n">service</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="o">;);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+In the service class, we simply annotate the method with our custom annotations and this method will be intercepted when it gets called.</p>
+
+<p><a name="app"></a></p>
+
+<h4>Let&rsquo;s run it&hellip;</h4>
+
+<p><figure class='code'><figcaption><span>App.java </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">package</span> <span class="n">com</span><span class="o">.</span><span class="na">xiaoyao</span><span class="o">.</span><span class="na">app</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">org.springframework.context.ApplicationContext</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">org.springframework.context.annotation.AnnotationConfigApplicationContext</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">com.xiaoyao.services.TestService</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">com.xiaoyao.config.AppConfig</span><span class="o">;&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">App</span> <span class="o">{</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">ApplicationContext</span> <span class="n">context</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">AnnotationConfigApplicationContext</span><span class="o">(</span><span class="n">AppConfig</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">TestService</span> <span class="n">testService</span> <span class="o">=</span> <span class="o">(</span><span class="n">TestService</span><span class="o">)</span> <span class="n">context</span><span class="o">.</span><span class="na">getBean</span><span class="o">(&amp;</span><span class="n">ldquo</span><span class="o">;</span><span class="n">testService</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="o">;);</span>
+</span><span class='line'>        <span class="n">testService</span><span class="o">.</span><span class="na">serve</span><span class="o">();</span>
+</span><span class='line'>        <span class="o">/&lt;</span><span class="n">em</span><span class="o">&gt;</span>
+</span><span class='line'>            <span class="nl">Output:</span>
+</span><span class='line'>            <span class="o">[</span><span class="n">TestAspect</span><span class="o">]</span> <span class="n">Intercepted</span>
+</span><span class='line'>            <span class="o">[</span><span class="n">TestAspect</span><span class="o">]</span> <span class="nl">appId:</span> <span class="n">Xiaoyao</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="o">;</span><span class="n">s</span> <span class="n">App</span>
+</span><span class='line'>            <span class="o">[</span><span class="n">AdditionalTestAspect</span><span class="o">]</span> <span class="n">Intercepted</span>
+</span><span class='line'>            <span class="o">[</span><span class="n">AdditionalTestAspect</span><span class="o">]</span> <span class="nl">appId:</span> <span class="n">Xiaoyao</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="o">;</span><span class="n">s</span> <span class="n">App</span>
+</span><span class='line'>            <span class="o">[</span><span class="n">AdditionalTestAspect</span><span class="o">]</span> <span class="nl">annotation:</span> <span class="mi">1</span>
+</span><span class='line'>            <span class="n">This</span> <span class="n">is</span> <span class="n">a</span> <span class="n">service</span>
+</span><span class='line'>        <span class="o">&lt;/</span><span class="n">em</span><span class="o">&gt;/</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<hr />
+
+<p><a name="pitfalls"></a></p>
+
+<h3>Pitfalls</h3>
+
+<ul>
+<li>@annotation can have attributes, but attribute type can only be primitives and Class&lt;>.</li>
+<li>@annotation attributes can only be assigned with constant expression. Namely, you have to do <code>@AdditionalTestAnnotation(1)</code> instead of <code>@AdditionalTestAnnotation(this.id)</code> even if <code>this.id</code> is a constant.</li>
+</ul>
+
+
+<hr />
+
+<h3>Reference:</h3>
+
+<ol>
+<li><a name="r1"></a><a href="http://docs.oracle.com/javase/7/docs/api/java/lang/annotation/RetentionPolicy.html">JavaDoc</a></li>
+<li><a name="r2"></a><a href="http://www.yegor256.com/2014/06/01/aop-aspectj-java-method-logging.html">Java Method Logging with AOP and Annotations</a></li>
+<li><a name="r3"></a><a href="http://docs.spring.io/spring-framework/docs/current/spring-framework-reference/html/aop.html">Spring Doc</a></li>
+</ol>
+
+]]></content>
+  </entry>
+  
+</feed>
